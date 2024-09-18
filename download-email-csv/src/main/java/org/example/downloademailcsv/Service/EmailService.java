@@ -81,7 +81,7 @@ public class EmailService {
             outputStream.write(buffer, 0, bytesRead);
         }
         outputStream.close();
-        System.out.println("Tệp đính kèm đã tải xuống: " + fileName);
+        log.info("Tệp đính kèm đã tải xuống: " + fileName);
     }
 
     private File getUniqueFileName(File file) {

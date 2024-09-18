@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
@@ -50,13 +51,13 @@ public class EmailService {
                         int dotIndex = fileName.lastIndexOf('.');
                         String extension = fileName.substring(dotIndex);
                         if (extension.equals(".csv")) {
-                            Future<?> future = ((ThreadPoolTaskExecutor) executor).submit(() -> {
+                            CompletableFuture<?> future = CompletableFuture.runAsync(()-> {
                                 try {
                                     saveFile(bodyPart, fileName);
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }
-                            });
+                            },this.executor);
                         }
                     }
                 }

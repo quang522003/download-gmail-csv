@@ -14,9 +14,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
@@ -30,7 +33,13 @@ public class EmailService {
 
 
 
-    public void downloadCsv(String email, String password) throws Exception{
+    public Integer downloadCsv(String email, String password) throws Exception{
+        File directory = new File("D:\\downloadFile");
+        if (!directory.exists()) {
+            directory.mkdirs(); // Tạo thư mục nếu chưa tồn tại
+        }
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        int fileNumber = 0;
         String host = "imap.gmail.com"; //host
         Properties properties = new Properties();
         properties.put("mail.imap.ssl.enable", "true"); //accept connect in session
@@ -58,11 +67,25 @@ public class EmailService {
                                     throw new RuntimeException(e);
                                 }
                             },this.executor);
+                            futures.add(future);
                         }
                     }
                 }
             }
         }
+        for (Future<?> future : futures) {
+            try {
+                future.get(); // Chờ cho đến khi mỗi Future hoàn tất
+                fileNumber++;
+            } catch (InterruptedException e) {
+                log.info(Thread.currentThread().getName() + "Error");
+                Thread.currentThread().interrupt(); // Khôi phục trạng thái ngắt
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return fileNumber;
     }
 
 

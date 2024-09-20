@@ -30,8 +30,10 @@ public class EmailController {
     @CrossOrigin
     @GetMapping("/download-csv")
     public ApiResonseDto<String> downloadCsv(@RequestParam String gmail, @RequestParam String password) throws Exception {
-        emailService.downloadCsv(gmail, password);
-        return ApiResonseDto.<String>builder().build();
+        int fileNumber = emailService.downloadCsv(gmail, password);
+        return ApiResonseDto.<String>builder()
+                .data("Download " + fileNumber + " files complete")
+                .build();
     }
 }
 

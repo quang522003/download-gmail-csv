@@ -2,6 +2,7 @@ package org.example.downloademailcsv.Service;
 
 import jakarta.mail.*;
 import jakarta.mail.internet.MimeMultipart;
+import org.example.downloademailcsv.Dto.ApiResonseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,6 +22,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
@@ -27,9 +30,14 @@ import java.util.concurrent.Future;
 public class EmailService {
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    @Qualifier("taskExecutor")
+
+
     @Autowired
-    private Executor executor;
+    private ThreadPoolTaskExecutor executor;
+
+
+    @Autowired
+    private RestTemplate restTemplate;
 
 
 
@@ -131,5 +139,32 @@ public class EmailService {
             counter++;
         }
         return file;
+    }
+
+
+    public ApiResonseDto<?> testGetProduct(String id){
+        String url = "http://192.168.0.213:8080/api/v1/" + id;
+        var object =  restTemplate.getForObject(url, ApiResonseDto.class);
+        return object;
+    }
+
+
+    public String callMultipleRequests(String id) throws InterruptedException {
+        List<Future<?>> futures = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            futures.add(executor.submit(() -> testGetProduct(id)));
+        }
+        var results = new ArrayList<>();
+        for (int i=0; i<futures.size(); i++) {
+            Future<?> future = futures.get(i);
+            try {
+                log.info("Data time: "+ i );
+                results.add(future.get());
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        executor.shutdown();
+        return results.get(999).toString();
     }
 }

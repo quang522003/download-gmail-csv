@@ -1,6 +1,7 @@
 package org.example.downloademailcsv.Controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.mail.*;
 import jakarta.mail.internet.MimeMultipart;
 import org.example.downloademailcsv.Dto.ApiResonseDto;
@@ -16,6 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api/email")
@@ -33,6 +35,14 @@ public class EmailController {
         int fileNumber = emailService.downloadCsv(gmail, password);
         return ApiResonseDto.<String>builder()
                 .data("Download " + fileNumber + " files complete")
+                .build();
+    }
+
+    @CrossOrigin
+    @GetMapping("/50/{id}")
+    public ApiResonseDto<String> testcallMultipleRequests(@PathVariable String id) throws JsonProcessingException, ExecutionException, InterruptedException {
+        return ApiResonseDto.<String>builder()
+                .data(emailService.callMultipleRequests(id))
                 .build();
     }
 }
